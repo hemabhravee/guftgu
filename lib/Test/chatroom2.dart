@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-//import 'chat.dart';
 import 'chatscreen2.dart';
 
 class ChatRoom extends StatefulWidget {
@@ -34,8 +33,8 @@ class _ChatRoomState extends State<ChatRoom> {
     var docs = querySnapshot.docs;
 
     for (int i = 0; i < docs.length; i++) {
-      var newListElement = [docs[i].get('name'), docs[i].get('email')];
-      users.add(newListElement);
+      var newElement = [docs[i].get('name'), docs[i].get('email')];
+      users.add(newElement);
     }
     print('***** LIST OF USERS :');
     users.forEach((element) {
@@ -130,162 +129,153 @@ class _ChatRoomState extends State<ChatRoom> {
                 topRight: Radius.circular(10.0),
               )),
           child: ClipRRect(
-              // Round rectangle clip whereas ClipRect is only rectangle clip
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10.0),
-                topRight: Radius.circular(10.0),
-              ),
-              child: FutureBuilder(
-                  future: getUsers(),
-                  builder: (context, usersnap) {
-                    print("futurebiulder");
-                    print(usersnap.data[0].get('email'));
-                    if (usersnap.data == null) {
-                      return CircularProgressIndicator();
-                    } else {
-                      return StreamBuilder(
-                          stream:
-                              fireStore.collection('chat groups').snapshots(),
-                          builder: (context, snapshot) {
-                            print("docs found : ${snapshot.data.docs.length}");
-                            getChats(snapshot);
-                            return ListView.builder(
-                                itemCount: count,
-                                itemBuilder: (BuildContext context, int index) {
-                                  List recipientData = getRecipientsAndEmail(
-                                    snapshot.data
-                                        .documents[currentUserIndices[index]]
-                                        .data()['users'],
-                                  );
-                                  print(
-                                      "build method recipient $index : $recipientData");
+            // Round rectangle clip whereas ClipRect is only rectangle clip
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10.0),
+              topRight: Radius.circular(10.0),
+            ),
 
-                                  String recipient = recipientData[0];
-                                  String recipientEmail = recipientData[1];
+            child: FutureBuilder(
+                future: getUsers(),
+                builder: (context, usersnap) {
+                  print('futurebuilder');
+                  print(usersnap.data[0].get('name'));
+                  return StreamBuilder(
+                      stream: fireStore.collection('chat groups').snapshots(),
+                      builder: (context, snapshot) {
+                        print("docs found : ${snapshot.data.docs.length}");
+                        if (snapshot.hasData && isLoading == false) {
+                          getChats(snapshot);
+                        }
+                        return ListView.builder(
+                            itemCount: count,
+                            itemBuilder: (BuildContext context, int index) {
+                              List recipientData = getRecipientsAndEmail(
+                                snapshot
+                                    .data.documents[currentUserIndices[index]]
+                                    .data()['users'],
+                              );
 
-                                  //final Message chat = chats[index];
-                                  return GestureDetector(
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (ctx) => ChatScreen(
-                                                user: widget.user,
-                                                name: recipient,
-                                                email: recipientEmail,
-                                                chatid: snapshot
-                                                    .data
-                                                    .documents[
-                                                        currentUserIndices[
-                                                            index]]
-                                                    .documentID
-                                                    .toString()))),
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                          top: 5.0, bottom: 5.0, right: 20.0),
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 20.0, vertical: 10.0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber[50],
-                                        //chat.unread ? Colors.amber[50] : Colors.white,
-                                        borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(10.0),
-                                            topRight: Radius.circular(10.0)),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment
-                                            .spaceBetween, // to evenly place the children at the end of the rows
+                              String sender = recipientData[0];
+                              String senderEmail = recipientData[1];
+
+                              return GestureDetector(
+                                onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (ctx) => ChatScreen(
+                                            user: widget.user,
+                                            name: sender,
+                                            email: senderEmail,
+                                            chatid: snapshot
+                                                .data
+                                                .documents[
+                                                    currentUserIndices[index]]
+                                                .documentID
+                                                .toString()))),
+                                child: Container(
+                                  margin: EdgeInsets.only(
+                                      top: 5.0, bottom: 5.0, right: 20.0),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20.0, vertical: 10.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber[50],
+                                    //chat.unread ? Colors.amber[50] : Colors.white,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(10.0),
+                                        topRight: Radius.circular(10.0)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween, // to evenly place the children at the end of the rows
+                                    children: [
+                                      Row(
                                         children: [
-                                          Row(
+                                          CircleAvatar(
+                                            radius: 35.0,
+                                            backgroundImage: AssetImage(
+                                                'assets/images/person_110935.png'),
+                                            backgroundColor: Colors.grey[400],
+                                          ),
+                                          SizedBox(
+                                            width: 10.0,
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              CircleAvatar(
-                                                radius: 35.0,
-                                                backgroundImage: AssetImage(
-                                                    'assets/images/person_110935.png'),
-                                                backgroundColor:
-                                                    Colors.grey[400],
+                                              Text(
+                                                sender != null
+                                                    ? sender
+                                                    : "chat",
+                                                style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  color: Colors.grey,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
-                                              SizedBox(
-                                                width: 10.0,
-                                              ),
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    recipient != null
-                                                        ? recipient
-                                                        : "chat",
-                                                    style: TextStyle(
-                                                      fontSize: 15.0,
-                                                      color: Colors.grey,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                              Container(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.50, // 50% of the container containng the message recieved.
+                                                child: Text(
+                                                  snapshot.data.docs[index]
+                                                      // .collection('messages')
+                                                      // .document[0]
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                    fontSize: 15.0,
+                                                    color: Colors.blueGrey,
+                                                    fontWeight: FontWeight.w600,
                                                   ),
-                                                  Container(
-                                                    width: MediaQuery.of(
-                                                                context)
-                                                            .size
-                                                            .width *
-                                                        0.50, // 50% of the container containng the message recieved.
-                                                    child: Text(
-                                                      snapshot.data.docs[index]
-                                                          // .collection('messages')
-                                                          // .document[0]
-                                                          .toString(),
-                                                      style: TextStyle(
-                                                        fontSize: 15.0,
-                                                        color: Colors.blueGrey,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                      overflow: TextOverflow
-                                                          .ellipsis, // to cut off the overflown text
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
+                                                  overflow: TextOverflow
+                                                      .ellipsis, // to cut off the overflown text
+                                                ),
+                                              )
                                             ],
                                           ),
-                                          // Column(
-                                          //   children: [
-                                          //     // Text(
-                                          //     //   chat.time,
-                                          //     //   style: TextStyle(
-                                          //     //       color: Colors.grey,
-                                          //     //       fontSize: 15.0,
-                                          //     //       fontWeight: FontWeight.bold),
-                                          //     // ),
-                                          //     SizedBox(
-                                          //       height: 5.0,
-                                          //     ),
-                                          //     // chat.unread
-                                          //     //     ? Container(
-                                          //     //         width: 40.0,
-                                          //     //         height: 20.0,
-                                          //     //         decoration: BoxDecoration(
-                                          //     //           color: Colors.redAccent,
-                                          //     //           borderRadius:
-                                          //     //               BorderRadius.circular(30.0),
-                                          //     //         ),
-                                          //     //         alignment: Alignment.center,
-                                          //     //         child: Text(
-                                          //     //           "New",
-                                          //     //           style: TextStyle(
-                                          //     //               color: Colors.white,
-                                          //     //               fontWeight: FontWeight.bold),
-                                          //     //         ))
-                                          //     //     : Text(''),
-                                          //   ],
-                                          // )
                                         ],
                                       ),
-                                    ),
-                                  );
-                                });
-                          });
-                    }
-                  })),
+                                      // Column(
+                                      //   children: [
+                                      //     // Text(
+                                      //     //   chat.time,
+                                      //     //   style: TextStyle(
+                                      //     //       color: Colors.grey,
+                                      //     //       fontSize: 15.0,
+                                      //     //       fontWeight: FontWeight.bold),
+                                      //     // ),
+                                      //     SizedBox(
+                                      //       height: 5.0,
+                                      //     ),
+                                      //     // chat.unread
+                                      //     //     ? Container(
+                                      //     //         width: 40.0,
+                                      //     //         height: 20.0,
+                                      //     //         decoration: BoxDecoration(
+                                      //     //           color: Colors.redAccent,
+                                      //     //           borderRadius:
+                                      //     //               BorderRadius.circular(30.0),
+                                      //     //         ),
+                                      //     //         alignment: Alignment.center,
+                                      //     //         child: Text(
+                                      //     //           "New",
+                                      //     //           style: TextStyle(
+                                      //     //               color: Colors.white,
+                                      //     //               fontWeight: FontWeight.bold),
+                                      //     //         ))
+                                      //     //     : Text(''),
+                                      //   ],
+                                      // )
+                                    ],
+                                  ),
+                                ),
+                              );
+                            });
+                      });
+                }),
+          ),
         ),
       );
     }
